@@ -123,6 +123,7 @@ def get_args():
 
 
 def main():
+    print("Nougat modified by michaelifebrian v1.0")
     args = get_args()
     model = NougatModel.from_pretrained(args.checkpoint)
     model = move_to_device(model, bf16=not args.full_precision, cuda=args.batchsize > 0)
@@ -177,18 +178,20 @@ def main():
             page_num += 1
             if output.strip() == "[MISSING_PAGE_POST]":
                 # uncaught repetitions -- most likely empty page
-                predictions.append(f"\n\n[MISSING_PAGE_EMPTY:{page_num}]\n\n")
+                # predictions.append(f"\n\n[MISSING_PAGE_EMPTY:{page_num}]\n\n")
+                logging.warning(f"Missing page empty {page_num}")
             elif args.skipping and model_output["repeats"][j] is not None:
                 if model_output["repeats"][j] > 0:
                     # If we end up here, it means the output is most likely not complete and was truncated.
                     logging.warning(f"Skipping page {page_num} due to repetitions.")
-                    predictions.append(f"\n\n[MISSING_PAGE_FAIL:{page_num}]\n\n")
+                    # predictions.append(f"\n\n[MISSING_PAGE_FAIL:{page_num}]\n\n")
                 else:
                     # If we end up here, it means the document page is too different from the training domain.
                     # This can happen e.g. for cover pages.
-                    predictions.append(
-                        f"\n\n[MISSING_PAGE_EMPTY:{i*args.batchsize+j+1}]\n\n"
-                    )
+                    # predictions.append(
+                    #     f"\n\n[MISSING_PAGE_EMPTY:{i*args.batchsize+j+1}]\n\n"
+                    # )
+                    logging.warning(f"Missing page empty {i*args.batchsize+j+1}")
             else:
                 if args.markdown:
                     output = markdown_compatible(output)
